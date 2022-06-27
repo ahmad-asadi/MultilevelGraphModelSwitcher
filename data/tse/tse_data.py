@@ -6,8 +6,7 @@ import os
 import sqlite3
 
 
-def setup_db():
-    database_file = r"../repository/Data.db"
+def setup_db(database_file="../repository/Data.db"):
     create_table_query = """
         CREATE TABLE IF NOT EXISTS tse_indices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,8 +36,15 @@ def setup_db():
     return c, conn
 
 
-def load_tse_indices_dataset():
+def crawl_tse_indices_dataset():
     cursor, connection = setup_db()
+
+    check_data_query = """SELECT COUNT(*) FROM tse_indices"""
+    count = cursor.execute(check_data_query).fetchone()
+    if count is not None and count[0] > 0:
+        cursor.close()
+        connection.close()
+        return
 
     repository_location = "../repository/TSE/Indices"
 
@@ -82,8 +88,8 @@ def load_tse_indices_dataset():
     min_date_query = "SELECT MIN(date_numeric), MAX(date_numeric) FROM tse_indices"
     min_date, max_date = cursor.execute(min_date_query).fetchone()
 
-    # date = min_date
-    date = 20180321
+    date = min_date
+    # date = 20180321
     while date < max_date:
         existing_isins_list_query = "SELECT isin FROM tse_indices WHERE date_numeric=%d" % date
         existing_isins_list = [r[0] for r in cursor.execute(existing_isins_list_query).fetchall()]
@@ -165,5 +171,41 @@ def load_tse_indices_dataset():
     connection.close()
 
 
+def load_tse_indices_data(database_file):
+    cursor, connection = setup_db(database_file=database_file)
+
+    query = """SELECT * FROM tse_indices"""
+    results = cursor.execute(query).fetchall()
+
+    connection.commit()
+    connection.close()
+
+    return results
+
+
+def load_tse_indices_isin_list(database_file):
+    cursor, connection = setup_db(database_file=database_file)
+
+    query = """SELECT DISTINCT isin FROM tse_indices"""
+    results = [r[0] for r in cursor.execute(query).fetchall()]
+
+    connection.commit()
+    connection.close()
+
+    return results
+
+
+def load_tse_indices_data_by_isin(database_file, isin):
+    cursor, connection = setup_db(database_file=database_file)
+
+    query = """SELECT * FROM tse_indices WHERE isin=%s""" % isin
+    results = cursor.execute(query).fetchall()
+
+    connection.commit()
+    connection.close()
+
+    return results
+
+
 if __name__ == "__main__":
-    load_tse_indices_dataset()
+    crawl_tse_indices_dataset()
