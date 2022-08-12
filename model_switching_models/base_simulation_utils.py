@@ -1,10 +1,9 @@
 import torch
 
 
-def train(model, train_loader, criterion):
+def train(model, train_loader, criterion, optimizer):
     running_loss = 0
-    model.train()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+    # model.train()
     for sub_data in train_loader:  # Iterate over each mini-batch.
         optimizer.zero_grad()  # Clear gradients.
         out = model(sub_data.x, sub_data.edge_index)  # Perform a single forward pass.
@@ -21,7 +20,7 @@ def train(model, train_loader, criterion):
 
 # noinspection PyUnresolvedReferences
 def test(model, data):
-    model.eval()
+    # model.eval()
     out = model(data.x, data.edge_index)
     pred = out.argmax(dim=1)  # Use the class with the highest probability.
 
@@ -32,9 +31,9 @@ def test(model, data):
     return accs
 
 
-def run(model, train_loader, criterion, test_data, epochs=5):
+def run(model, train_loader, criterion, test_data, optimizer, epochs=5):
     for epoch in range(1, epochs):
-        loss = train(model, train_loader, criterion)
+        loss = train(model, train_loader=train_loader, criterion=criterion, optimizer=optimizer)
         train_acc, val_acc, test_acc = test(model, test_data)
         print(f'Epoch: {epoch:03d}, Train Loss: {loss:.4f}, Train Acc: {train_acc:.4f}, '
               f'Val Acc: {val_acc:.4f}, Test Acc: {test_acc:.4f}')

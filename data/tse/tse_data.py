@@ -6,7 +6,9 @@ import os
 import sqlite3
 
 
-def setup_db(database_file="../repository/Data.db"):
+def setup_db(database_file):
+    if database_file is None:
+        database_file = "/home/ahmad/MultilevelGraphModelSwitcher/data/repository/Data.db"
     create_table_query = """
         CREATE TABLE IF NOT EXISTS tse_indices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,8 +38,8 @@ def setup_db(database_file="../repository/Data.db"):
     return c, conn
 
 
-def crawl_tse_indices_dataset():
-    cursor, connection = setup_db()
+def crawl_tse_indices_dataset(database_file):
+    cursor, connection = setup_db(database_file)
 
     check_data_query = """SELECT COUNT(*) FROM tse_indices"""
     count = cursor.execute(check_data_query).fetchone()
@@ -46,7 +48,7 @@ def crawl_tse_indices_dataset():
         connection.close()
         return
 
-    repository_location = "../repository/TSE/Indices"
+    repository_location = "/home/ahmad/MultilevelGraphModelSwitcher/data/repository/TSE/Indices"
 
     isin_list = []
     for file in os.listdir(repository_location):
@@ -173,6 +175,7 @@ def crawl_tse_indices_dataset():
 
 def load_tse_indices_data(database_file):
     cursor, connection = setup_db(database_file=database_file)
+    crawl_tse_indices_dataset(database_file)
 
     query = """SELECT * FROM tse_indices"""
     results = cursor.execute(query).fetchall()
@@ -185,6 +188,7 @@ def load_tse_indices_data(database_file):
 
 def load_tse_indices_isin_list(database_file):
     cursor, connection = setup_db(database_file=database_file)
+    crawl_tse_indices_dataset(database_file)
 
     query = """SELECT DISTINCT isin FROM tse_indices"""
     results = [r[0] for r in cursor.execute(query).fetchall()]
@@ -197,6 +201,7 @@ def load_tse_indices_isin_list(database_file):
 
 def load_tse_indices_data_by_isin(database_file, isin):
     cursor, connection = setup_db(database_file=database_file)
+    crawl_tse_indices_dataset(database_file)
 
     query = """SELECT * FROM tse_indices WHERE isin=%s""" % isin
     results = cursor.execute(query).fetchall()
@@ -208,4 +213,4 @@ def load_tse_indices_data_by_isin(database_file, isin):
 
 
 if __name__ == "__main__":
-    crawl_tse_indices_dataset()
+    crawl_tse_indices_dataset(database_file=None)
