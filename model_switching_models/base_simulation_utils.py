@@ -6,7 +6,7 @@ def train(model, train_loader, criterion, optimizer):
     # model.train()
     for sub_data in train_loader:  # Iterate over each mini-batch.
         optimizer.zero_grad()  # Clear gradients.
-        out = model(sub_data.x, sub_data.edge_index)  # Perform a single forward pass.
+        out = model(sub_data["x"], sub_data["edge_index"])  # Perform a single forward pass.
         loss = criterion(out[sub_data.train_mask],
                          sub_data.y[sub_data.train_mask])  # Compute the loss solely based on the training nodes.
         running_loss += loss.item()  # Compute sum of loss values during an iteration.

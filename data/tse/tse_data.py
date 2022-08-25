@@ -7,6 +7,12 @@ import sqlite3
 
 
 def setup_db(database_file):
+    def dict_factory(cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
+
     if database_file is None:
         database_file = "/home/ahmad/MultilevelGraphModelSwitcher/data/repository/Data.db"
     create_table_query = """
@@ -32,6 +38,7 @@ def setup_db(database_file):
     """
 
     conn = sqlite3.connect(database_file)
+    conn.row_factory = dict_factory
     c = conn.cursor()
     c.execute(create_table_query)
 
@@ -41,9 +48,9 @@ def setup_db(database_file):
 def crawl_tse_indices_dataset(database_file):
     cursor, connection = setup_db(database_file)
 
-    check_data_query = """SELECT COUNT(*) FROM tse_indices"""
+    check_data_query = """SELECT COUNT(*) as count FROM tse_indices"""
     count = cursor.execute(check_data_query).fetchone()
-    if count is not None and count[0] > 0:
+    if "count" in count and count["count"] > 0:
         cursor.close()
         connection.close()
         return
@@ -173,11 +180,15 @@ def crawl_tse_indices_dataset(database_file):
     connection.close()
 
 
-def load_tse_indices_data(database_file):
+def load_tse_indices_data(database_file, isin=None):
     cursor, connection = setup_db(database_file=database_file)
     crawl_tse_indices_dataset(database_file)
 
     query = """SELECT * FROM tse_indices"""
+    if isin is not None:
+        query += " where isin='%s'" % isin
+    query += " order by date_numeric asc"
+
     results = cursor.execute(query).fetchall()
 
     connection.commit()
