@@ -4,6 +4,7 @@ import pandas as pd
 
 import os
 import sqlite3
+import os
 
 
 def setup_db(database_file):
@@ -14,7 +15,7 @@ def setup_db(database_file):
         return d
 
     if database_file is None:
-        database_file = "/home/ahmad/MultilevelGraphModelSwitcher/data/repository/Data.db"
+        database_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../repository/Data.db")
     create_table_query = """
         CREATE TABLE IF NOT EXISTS tse_indices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,7 +56,7 @@ def crawl_tse_indices_dataset(database_file):
         connection.close()
         return
 
-    repository_location = "/home/ahmad/MultilevelGraphModelSwitcher/data/repository/TSE/Indices"
+    repository_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../repository/TSE/Indices")
 
     isin_list = []
     for file in os.listdir(repository_location):
