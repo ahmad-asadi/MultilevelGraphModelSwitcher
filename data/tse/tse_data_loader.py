@@ -15,13 +15,13 @@ class TseDataLoader(BaseDataLoader):
 
         for idx in range(len(raw_dataset) - graph_depth):
             node_features = [[
-                    raw_dataset[idx + i]["open"],
-                    raw_dataset[idx + i]["high"],
-                    raw_dataset[idx + i]["low"],
-                    raw_dataset[idx + i]["close"],
-                    raw_dataset[idx + i]["vol"],
-                    raw_dataset[idx + i]["cap"],
-                    raw_dataset[idx + i]["count"],
+                    raw_dataset[idx + i]["open"]/raw_dataset[idx + i]["high"],
+                    raw_dataset[idx + i]["high"]/raw_dataset[idx + i]["high"],
+                    raw_dataset[idx + i]["low"]/raw_dataset[idx + i]["high"],
+                    raw_dataset[idx + i]["close"]/raw_dataset[idx + i]["high"],
+                    # raw_dataset[idx + i]["vol"],
+                    # raw_dataset[idx + i]["cap"],
+                    # raw_dataset[idx + i]["count"],
                 ] for i in range(graph_depth)]
 
             # TODO: current edge_index creates a linear connectivity over time. We should examine short-links between

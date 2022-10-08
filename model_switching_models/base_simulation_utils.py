@@ -1,3 +1,6 @@
+import datetime
+import numpy as np
+
 import torch
 
 
@@ -6,9 +9,19 @@ def train(model, train_loader, criterion, optimizer):
     # model.train()
     for sub_data in train_loader:  # Iterate over each mini-batch.
         optimizer.zero_grad()  # Clear gradients.
-        out = model(sub_data["x"], sub_data["edge_index"])  # Perform a single forward pass.
-        loss = criterion(out[sub_data.train_mask],
-                         sub_data.y[sub_data.train_mask])  # Compute the loss solely based on the training nodes.
+
+        # out = model(sub_data["x"], batch=None)  # Perform a single forward pass, while using KNN_Graph
+        out = model(sub_data, batch=None)  # Perform a single forward pass.
+
+        y_pred = -1
+        if sub_data["x"][-1][3] > sub_data["x"][-2][3]:
+            y_pred = 1
+
+        # print(out.item(), y_pred)
+        target = torch.tensor([y_pred])
+        target = target.to(torch.float32)
+
+        loss = criterion(out, target)  # Compute the loss solely based on the training nodes.
         running_loss += loss.item()  # Compute sum of loss values during an iteration.
         loss.backward()  # Derive gradients.
         optimizer.step()  # Update parameters based on gradients.
@@ -18,22 +31,29 @@ def train(model, train_loader, criterion, optimizer):
     return running_loss
 
 
-# noinspection PyUnresolvedReferences
-def test(model, data):
-    # model.eval()
-    out = model(data.x, data.edge_index)
-    pred = out.argmax(dim=1)  # Use the class with the highest probability.
-
+def test(model, test_data):
     accs = []
-    for mask in [data.train_mask, data.val_mask, data.test_mask]:
-        correct = pred[mask] == data.y[mask]  # Check against ground-truth labels.
-        accs.append(int(correct.sum()) / int(mask.sum()))  # Derive ratio of correct predictions.
-    return accs
+    for sub_data in test_data:
+        pred = model(sub_data, batch=None)  # Perform a single forward pass.
+        y_pred = -1
+        if sub_data["x"][-1][3] > sub_data["x"][-2][3]:
+            y_pred = 1
+
+        correct = pred * y_pred > 0  # Check against ground-truth labels.
+        accs.append(int(correct.sum()) / len(test_data))  # Derive ratio of correct predictions.
+    return np.sum(accs)
 
 
 def run(model, train_loader, criterion, test_data, optimizer, epochs=5):
     for epoch in range(1, epochs):
-        loss = train(model, train_loader=train_loader, criterion=criterion, optimizer=optimizer)
-        train_acc, val_acc, test_acc = test(model, test_data)
-        print(f'Epoch: {epoch:03d}, Train Loss: {loss:.4f}, Train Acc: {train_acc:.4f}, '
-              f'Val Acc: {val_acc:.4f}, Test Acc: {test_acc:.4f}')
+
+        loss = train(model=model, train_loader=train_loader, criterion=criterion, optimizer=optimizer)
+
+        now = datetime.datetime.now()
+        if test_data is not None:
+            test_acc = test(model=model, test_data=test_data)
+
+            print(now, f'Epoch: {epoch:03d}, Train Loss: {loss:.4f}, Test Acc: {test_acc:.4f}')
+
+        else:
+            print(now, f'Epoch: {epoch:03d}, Train Loss: {loss:.4f}')

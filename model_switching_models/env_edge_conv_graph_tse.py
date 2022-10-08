@@ -11,9 +11,10 @@ data = load_tse_indices_data(database_file=None, isin='IRX6XTPI0009')
 
 train_data_loader = DataLoader(dataset=TseDataLoader(raw_dataset=data, batch_size=5).graph_dataset, batch_size=1)
 
-model = DynamicEdgeConv(in_channels=5, out_channels=5, k=6)
+model = DynamicEdgeConv(in_channels=4, out_channels=1, k=6)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-4)
+criterion = torch.nn.MSELoss(reduction="sum")
 
-run(model, train_loader=train_data_loader, criterion=None, test_data=None, optimizer=optimizer, epochs=5)
-
+run(model=model, train_loader=train_data_loader, criterion=criterion, test_data=train_data_loader,
+    optimizer=optimizer, epochs=2000)

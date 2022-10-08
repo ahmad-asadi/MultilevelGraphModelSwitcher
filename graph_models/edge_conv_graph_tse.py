@@ -2,15 +2,18 @@ from abc import ABC
 
 import torch
 from torch import Tensor
-from torch.nn import Sequential as Seq, Linear, ReLU
+from torch.nn import Sequential as Seq, Linear, ReLU, Flatten, Tanh
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.pool import knn_graph
 
 
 # noinspection PyMethodOverriding
 class EdgeConv(MessagePassing, ABC):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, node_features_fusion_type):
         super().__init__(aggr='max')  # "Max" aggregation.
+
+        self.node_features_fusion_type = node_features_fusion_type
+
         self.mlp = Seq(Linear(2 * in_channels, out_channels),
                        ReLU(),
                        Linear(out_channels, out_channels))
@@ -25,16 +28,41 @@ class EdgeConv(MessagePassing, ABC):
         # x_i has shape [E, in_channels]
         # x_j has shape [E, in_channels]
 
-        tmp = torch.cat([x_i, x_j - x_i], dim=1)  # tmp has shape [E, 2 * in_channels]
-        return self.mlp(tmp)
+        if self.node_features_fusion_type == "CAT_MLP":
+            tmp = torch.cat([x_i, x_j - x_i], dim=1)  # tmp has shape [E, 2 * in_channels]
+            output = self.mlp(tmp)
+        else:
+            raise ValueError("invalid node features fusion type.")
+
+        return output
 
 
 # noinspection PyAbstractClass
 class DynamicEdgeConv(EdgeConv):
-    def __init__(self, in_channels, out_channels, k=6):
-        super().__init__(in_channels, out_channels)
+    def __init__(self, in_channels, out_channels, k=6, edge_type="LINEAR", node_feature_fusion_type="CAT_MLP"):
+        super().__init__(in_channels, in_channels, node_feature_fusion_type)
         self.k = k
+        self.edge_type = edge_type
+        self.node_feature_fusion_type = node_feature_fusion_type
 
-    def forward(self, x, batch=None):
-        edge_index = knn_graph(x, self.k, batch, loop=False, flow=self.flow)
-        return super().forward(x, edge_index)
+        self.output_generator_model = Seq(
+            Flatten(0, -1),
+            Linear(5 * in_channels, out_channels),
+            Tanh()
+        )
+
+    def forward(self, X, batch=None):
+        if self.edge_type == "KNN":
+            x = X
+            edge_index = knn_graph(x, self.k, batch, loop=False, flow=self.flow)
+        elif self.edge_type == "LINEAR":
+            x = X["x"]
+            edge_index = X["edge_index"][0]
+        else:
+            raise ValueError("invalid edge type")
+
+        graph_output = super().forward(x, edge_index)
+
+        output = self.output_generator_model(graph_output)
+
+        return output
