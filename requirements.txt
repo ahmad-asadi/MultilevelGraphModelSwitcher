@@ -1,6 +1,8 @@
-torch
+torch~=1.12.1
 torch_geometric
 torch_sparse
 torch_scatter
 torch_cluster
-pandas
+pandas~=1.4.4
+yfinance~=0.1.77
+numpy~=1.23.3
