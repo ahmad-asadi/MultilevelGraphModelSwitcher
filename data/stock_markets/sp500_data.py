@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 import yfinance as yf
 import os
@@ -52,38 +54,52 @@ def crawl_sp500_stocks_dataset(database_file):
     df.to_csv("../repository/STOCK/S&P500-Symbols.csv", columns=['Symbol'])
 
     df = table[0]
-    stockdata = df['Symbol'].to_list()[:-3]
-    full_stock_data = yf.download(stockdata, '2010-01-01', '2022-10-18')
-    full_stock_data = full_stock_data.to_dict("index")
-    columns_list = {
-        "Adj Close": "adj_close",
-        "Close": "close",
-        "Open": "open",
-        "High": "high",
-        "Low": "low",
-        "Volume": "volume"
-    }
+    stockdata = df['Symbol'].to_list()
 
-    for date_time in full_stock_data.keys():
-        print(date_time)
-        for ticker in stockdata:
-            record = {
-                "ticker": ticker,
-                "date_time": date_time.strftime("%Y-%m-%d %H:%M:%S")
-            }
-            for data_column in columns_list.keys():
-                if np.isnan(full_stock_data[date_time][(data_column, ticker)]):
-                    full_stock_data[date_time][(data_column, ticker)] = 0
-                record[columns_list[data_column]] = full_stock_data[date_time][(data_column, ticker)]
-            query = """
-                INSERT INTO sp500_stocks 
-                (ticker, date_time, open, high, low, close, adj_close, vol)
-                VALUES 
-                ('%s', '%s', %f, %f, %f, %f, %f, %f)
-            """ % (record["ticker"], record["date_time"], record["open"], record["high"],
-                   record["low"], record["close"], record["adj_close"], record["volume"])
+    ind = 1
+    for d in stockdata:
+        print(ind, d, datetime.datetime.now())
+        ind += 1
+        full_stock_data = yf.download(d, '2010-01-01', '2022-09-18')
+        full_stock_data = full_stock_data.to_dict("index")
+        columns_list = {
+            "Adj Close": "adj_close",
+            "Close": "close",
+            "Open": "open",
+            "High": "high",
+            "Low": "low",
+            "Volume": "volume"
+        }
 
-            cursor.execute(query)
+        for date_time in full_stock_data.keys():
+            for ticker in stockdata:
+                record = {
+                    "ticker": ticker,
+                    "date_time": date_time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+                is_valid = True
+                for data_column in columns_list.keys():
+                    if (data_column, ticker) not in full_stock_data:
+                        is_valid = False
+                        continue
+
+                    if np.isnan(full_stock_data[date_time][(data_column, ticker)]):
+                        full_stock_data[date_time][(data_column, ticker)] = 0
+
+                    record[columns_list[data_column]] = full_stock_data[date_time][(data_column, ticker)]
+
+                if not is_valid:
+                    continue
+
+                query = """
+                    INSERT INTO sp500_stocks 
+                    (ticker, date_time, open, high, low, close, adj_close, vol)
+                    VALUES 
+                    ('%s', '%s', %f, %f, %f, %f, %f, %f)
+                """ % (record["ticker"], record["date_time"], record["open"], record["high"],
+                       record["low"], record["close"], record["adj_close"], record["volume"])
+
+                cursor.execute(query)
             connection.commit()
 
     cursor.close()
