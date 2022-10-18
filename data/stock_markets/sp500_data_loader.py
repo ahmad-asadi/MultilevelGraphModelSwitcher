@@ -15,10 +15,10 @@ class SP500DataLoader(BaseDataLoader):
 
         for idx in range(len(raw_dataset) - graph_depth):
             node_features = [[
-                    raw_dataset[idx + i]["open"]/raw_dataset[idx + i]["high"],
+                    raw_dataset[idx + i]["open"]/raw_dataset[idx + i]["open"],
                     raw_dataset[idx + i]["high"]/raw_dataset[idx + i]["high"],
-                    raw_dataset[idx + i]["low"]/raw_dataset[idx + i]["high"],
-                    raw_dataset[idx + i]["close"]/raw_dataset[idx + i]["high"],
+                    raw_dataset[idx + i]["low"]/raw_dataset[idx + i]["low"],
+                    raw_dataset[idx + i]["close"]/raw_dataset[idx + i]["close"],
                     # raw_dataset[idx + i]["vol"],
                     # raw_dataset[idx + i]["cap"],
                     # raw_dataset[idx + i]["count"],
