@@ -55,65 +55,62 @@ def crawl_sp500_stocks_dataset(database_file):
 
     df = table[0]
     stockdata = df['Symbol'].to_list()
+    stockdata = [data.split(".")[0] for data in stockdata]
 
-    ind = 1
-    for d in stockdata:
-        print(ind, d, datetime.datetime.now())
-        ind += 1
-        full_stock_data = yf.download(d, '2010-01-01', '2022-09-18')
-        full_stock_data = full_stock_data.to_dict("index")
-        columns_list = {
-            "Adj Close": "adj_close",
-            "Close": "close",
-            "Open": "open",
-            "High": "high",
-            "Low": "low",
-            "Volume": "volume"
-        }
+    full_stock_data = yf.download(stockdata, '2010-01-01', '2022-09-18')
+    full_stock_data = full_stock_data.to_dict("index")
+    columns_list = {
+        "Adj Close": "adj_close",
+        "Close": "close",
+        "Open": "open",
+        "High": "high",
+        "Low": "low",
+        "Volume": "volume"
+    }
 
-        for date_time in full_stock_data.keys():
-            for ticker in stockdata:
-                record = {
-                    "ticker": ticker,
-                    "date_time": date_time.strftime("%Y-%m-%d %H:%M:%S")
-                }
-                is_valid = True
-                for data_column in columns_list.keys():
-                    if (data_column, ticker) not in full_stock_data:
-                        is_valid = False
-                        continue
-
-                    if np.isnan(full_stock_data[date_time][(data_column, ticker)]):
-                        full_stock_data[date_time][(data_column, ticker)] = 0
-
-                    record[columns_list[data_column]] = full_stock_data[date_time][(data_column, ticker)]
-
-                if not is_valid:
+    for date_time in full_stock_data.keys():
+        for ticker in stockdata:
+            record = {
+                "ticker": ticker,
+                "date_time": date_time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            is_valid = True
+            for data_column in columns_list.keys():
+                if (data_column, ticker) not in full_stock_data[date_time]:
+                    is_valid = False
                     continue
 
-                query = """
-                    INSERT INTO sp500_stocks 
-                    (ticker, date_time, open, high, low, close, adj_close, vol)
-                    VALUES 
-                    ('%s', '%s', %f, %f, %f, %f, %f, %f)
-                """ % (record["ticker"], record["date_time"], record["open"], record["high"],
-                       record["low"], record["close"], record["adj_close"], record["volume"])
+                if np.isnan(full_stock_data[date_time][(data_column, ticker)]):
+                    full_stock_data[date_time][(data_column, ticker)] = 0
 
-                cursor.execute(query)
-            connection.commit()
+                record[columns_list[data_column]] = full_stock_data[date_time][(data_column, ticker)]
+
+            if not is_valid:
+                continue
+
+            query = """
+                INSERT INTO sp500_stocks 
+                (ticker, date_time, open, high, low, close, adj_close, vol)
+                VALUES 
+                ('%s', '%s', %f, %f, %f, %f, %f, %f)
+            """ % (record["ticker"], record["date_time"], record["open"], record["high"],
+                   record["low"], record["close"], record["adj_close"], record["volume"])
+
+            cursor.execute(query)
+        connection.commit()
 
     cursor.close()
     connection.close()
 
 
-def load_sp500_stocks_data(database_file, isin=None):
+def load_sp500_stocks_data(database_file, ticker=None):
     cursor, connection = setup_db(database_file=database_file)
     crawl_sp500_stocks_dataset(database_file)
 
     query = """SELECT * FROM sp500_stocks"""
-    if isin is not None:
-        query += " where isin='%s'" % isin
-    query += " order by date_numeric asc"
+    if ticker is not None:
+        query += " where ticker='%s'" % ticker
+    query += " order by date_time asc"
 
     results = cursor.execute(query).fetchall()
 
@@ -123,11 +120,11 @@ def load_sp500_stocks_data(database_file, isin=None):
     return results
 
 
-def load_sp500_stocks_isin_list(database_file):
+def load_sp500_stocks_ticker_list(database_file):
     cursor, connection = setup_db(database_file=database_file)
     crawl_sp500_stocks_dataset(database_file)
 
-    query = """SELECT DISTINCT isin FROM sp500_stocks"""
+    query = """SELECT DISTINCT ticker FROM sp500_stocks"""
     results = [r[0] for r in cursor.execute(query).fetchall()]
 
     connection.commit()
@@ -136,11 +133,11 @@ def load_sp500_stocks_isin_list(database_file):
     return results
 
 
-def load_sp500_stocks_data_by_isin(database_file, isin):
+def load_sp500_stocks_data_by_ticker(database_file, ticker):
     cursor, connection = setup_db(database_file=database_file)
     crawl_sp500_stocks_dataset(database_file)
 
-    query = """SELECT * FROM sp500_stocks WHERE isin=%s""" % isin
+    query = """SELECT * FROM sp500_stocks WHERE ticker=%s""" % ticker
     results = cursor.execute(query).fetchall()
 
     connection.commit()
