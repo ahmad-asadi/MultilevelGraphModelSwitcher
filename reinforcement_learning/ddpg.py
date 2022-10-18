@@ -35,6 +35,8 @@ class DDPGAgent:
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=critic_learning_rate)
 
     def get_action(self, state):
+        if isinstance(state, tuple):
+            state = state[0]
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
         action = self.actor.forward(state)
         action = action.detach().numpy()[0, 0]
@@ -42,10 +44,10 @@ class DDPGAgent:
 
     def update(self, batch_size):
         states, actions, rewards, next_states, _ = self.memory.sample(batch_size)
-        states = torch.FloatTensor(states)
-        actions = torch.FloatTensor(actions)
-        rewards = torch.FloatTensor(rewards)
-        next_states = torch.FloatTensor(next_states)
+        states = torch.FloatTensor(np.array(states))
+        actions = torch.FloatTensor(np.array(actions))
+        rewards = torch.FloatTensor(np.array(rewards))
+        next_states = torch.FloatTensor(np.array(next_states))
 
         # Critic loss
         q_vals = self.critic.forward(states, actions)

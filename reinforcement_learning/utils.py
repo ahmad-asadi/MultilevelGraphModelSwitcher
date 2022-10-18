@@ -1,6 +1,7 @@
 import numpy as np
 from collections import deque
 import random
+import gym
 
 
 # Ornstein-Ulhenbeck Process
@@ -34,21 +35,21 @@ class OUNoise(object):
         return np.clip(action + ou_state, self.low, self.high)
 
 
-# # https://github.com/openai/gym/blob/master/gym/core.py
-# class NormalizedEnv(gym.ActionWrapper):
-#     """ Wrap action """
-#
-#     def _action(self, action):
-#         act_k = (self.action_space.high - self.action_space.low) / 2.
-#         act_b = (self.action_space.high + self.action_space.low) / 2.
-#         return act_k * action + act_b
-#
-#     def _reverse_action(self, action):
-#         act_k_inv = 2. / (self.action_space.high - self.action_space.low)
-#         act_b = (self.action_space.high + self.action_space.low) / 2.
-#         return act_k_inv * (action - act_b)
-#
-#
+# https://github.com/openai/gym/blob/master/gym/core.py
+class NormalizedEnv(gym.ActionWrapper):
+    """ Wrap action """
+
+    def _action(self, action):
+        act_k = (self.action_space.high - self.action_space.low) / 2.
+        act_b = (self.action_space.high + self.action_space.low) / 2.
+        return act_k * action + act_b
+
+    def _reverse_action(self, action):
+        act_k_inv = 2. / (self.action_space.high - self.action_space.low)
+        act_b = (self.action_space.high + self.action_space.low) / 2.
+        return act_k_inv * (action - act_b)
+
+
 class Memory:
     def __init__(self, max_size):
         self.max_size = max_size
@@ -69,6 +70,8 @@ class Memory:
 
         for experience in batch:
             state, action, reward, next_state, done = experience
+            if isinstance(state, tuple):
+                state = state[0]
             state_batch.append(state)
             action_batch.append(action)
             reward_batch.append(reward)
