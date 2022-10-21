@@ -1,5 +1,5 @@
 import torch
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 
 from data.tse.tse_data_loader import TseDataLoader
 from model_switching_models.base_simulation_utils import run
