@@ -2,7 +2,7 @@ from abc import ABC
 
 import torch
 from torch import Tensor
-from torch.nn import Sequential as Seq, Linear, ReLU, Flatten, Tanh
+from torch.nn import Sequential as Seq, Linear, ReLU, Flatten, Tanh, Softmax
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.pool import knn_graph
 
@@ -10,12 +10,12 @@ from torch_geometric.nn.pool import knn_graph
 # noinspection PyMethodOverriding
 class EdgeConv(MessagePassing, ABC):
     def __init__(self, in_channels, out_channels, node_features_fusion_type):
-        super().__init__(aggr='max')  # "Max" aggregation.
+        super().__init__(aggr='mean')  # "Max" aggregation.
 
         self.node_features_fusion_type = node_features_fusion_type
 
         self.mlp = Seq(Linear(2 * in_channels, out_channels),
-                       ReLU(),
+                       # ReLU(),
                        Linear(out_channels, out_channels))
 
     def forward(self, x, edge_index):
@@ -47,8 +47,10 @@ class DynamicEdgeConv(EdgeConv):
 
         self.output_generator_model = Seq(
             Flatten(0, -1),
-            Linear(5 * in_channels, out_channels),
-            Tanh()
+            Linear(5 * in_channels, in_channels),
+            Linear(in_channels, in_channels),
+            Linear(in_channels, out_channels),
+            Softmax(dim=-1)
         )
 
     def forward(self, X, batch=None):
