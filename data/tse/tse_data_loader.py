@@ -13,33 +13,31 @@ class TseDataLoader(BaseDataLoader):
     @staticmethod
     def create_graph_dataset(raw_dataset, graph_depth, batch_size):
         graph_dataset = []
+        market_isin = 'IRX6XTPI0009'
 
-        raw_dataset = [record if record["vol"] > 0 else
-                       {"open": 1, "high": 1, "low": 1, "close": 1, "vol": 0, "cap": 0, "count": 0} for record in
-                       raw_dataset]
+        isins = list(raw_dataset.keys())
+        for isin in isins:
+            raw_dataset[isin] = [
+                record if record["vol"] > 0 else
+                {"open": 1, "high": 1, "low": 1, "close": 1, "vol": 0, "cap": 0, "count": 0} 
+                for record in raw_dataset[isin]]
 
-        for idx in range(len(raw_dataset) - graph_depth - 1):
-            # node_features = [[
-            #     raw_dataset[idx + i]["open"] / raw_dataset[idx + i]["high"],
-            #     raw_dataset[idx + i]["high"] / raw_dataset[idx + i]["high"],
-            #     raw_dataset[idx + i]["low"] / raw_dataset[idx + i]["high"],
-            #     raw_dataset[idx + i]["close"] / raw_dataset[idx + i]["high"],
-            #     # raw_dataset[idx + i]["vol"],
-            #     # raw_dataset[idx + i]["cap"],
-            #     # raw_dataset[idx + i]["count"],
-            # ] for i in range(graph_depth)]
+        for idx in range(len(raw_dataset[market_isin]) - graph_depth - 1):
+            node_features = []
 
-            node_features = [[
-                +1 if raw_dataset[idx + i]["open"] > raw_dataset[idx + i]["close"] else -1,
-                raw_dataset[idx + i]["high"] / raw_dataset[idx + i]["low"],
-                raw_dataset[idx + i]["open"] / raw_dataset[idx + i]["close"],
-                raw_dataset[idx + i]["high"] / raw_dataset[idx + i]["open"],
-                # raw_dataset[idx + i]["low"] / raw_dataset[idx + i]["close"],
-                # raw_dataset[idx + i]["vol"],
-                # raw_dataset[idx + i]["cap"],
-                # raw_dataset[idx + i]["count"],
-            ] for i in range(graph_depth)]
+            for stock in raw_dataset.keys():
+                node_features.append([[
+                    +1 if raw_dataset[stock][idx + i + 1]["close"] > raw_dataset[stock][idx + i]["close"] else -1,
+                    raw_dataset[stock][idx + i]["high"] / raw_dataset[stock][idx + i]["low"],
+                    raw_dataset[stock][idx + i]["open"] / raw_dataset[stock][idx + i]["close"],
+                    raw_dataset[stock][idx + i]["high"] / raw_dataset[stock][idx + i]["open"],
+                    # raw_dataset[idx + i]["low"] / raw_dataset[idx + i]["close"],
+                    # raw_dataset[idx + i]["vol"],
+                    # raw_dataset[idx + i]["cap"],
+                    # raw_dataset[idx + i]["count"],
+                ] for i in range(graph_depth)])
 
+            node_features = np.swapaxes(np.array(node_features), 0, 1)
             edge_index_src = []
             edge_index_dest = []
             for i in range(graph_depth):
@@ -49,7 +47,7 @@ class TseDataLoader(BaseDataLoader):
             edge_index = [[edge_index_src, edge_index_dest]]
 
             label = [1, 0]
-            if raw_dataset[idx + graph_depth]["close"] > raw_dataset[idx + graph_depth - 1]["close"]:
+            if raw_dataset[market_isin][idx + graph_depth]["close"] > raw_dataset[market_isin][idx + graph_depth - 1]["close"]:
                 label = [0, 1]
 
             graph_dataset.append(Data(x=torch.tensor(node_features, dtype=torch.float),

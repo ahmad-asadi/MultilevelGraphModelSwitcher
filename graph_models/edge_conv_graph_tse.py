@@ -14,8 +14,9 @@ class EdgeConv(MessagePassing, ABC):
 
         self.node_features_fusion_type = node_features_fusion_type
 
-        self.mlp = Seq(Linear(2 * in_channels, out_channels),
+        self.mlp = Seq(Linear(2 * in_channels, in_channels),
                        # ReLU(),
+                       Linear(in_channels, out_channels),
                        Linear(out_channels, out_channels))
 
     def forward(self, x, edge_index):
@@ -53,6 +54,8 @@ class DynamicEdgeConv(EdgeConv):
             Softmax(dim=-1)
         )
 
+        self.node_features_fusion_layer = torch.nn.Conv1d(41, 41, 4, stride=1)
+
     def forward(self, X, batch=None):
         if self.edge_type == "KNN":
             x = X
@@ -62,6 +65,9 @@ class DynamicEdgeConv(EdgeConv):
             edge_index = X["edge_index"][0]
         else:
             raise ValueError("invalid edge type")
+
+        x = self.node_features_fusion_layer(x)
+        x = torch.squeeze(x)
 
         graph_output = super().forward(x, edge_index)
 

@@ -7,14 +7,15 @@ from graph_models.edge_conv_graph_tse import DynamicEdgeConv
 
 from data.tse.tse_data import load_tse_indices_data
 
-data = load_tse_indices_data(database_file=None, isin='IRX6XTPI0009')
+data = load_tse_indices_data(database_file=None)
 
 train_data_loader = DataLoader(dataset=TseDataLoader(raw_dataset=data, batch_size=5).graph_dataset, batch_size=1,
                                shuffle=True)
 
-model = DynamicEdgeConv(in_channels=4, out_channels=2, k=6)
+# model = DynamicEdgeConv(in_channels=4, out_channels=2, k=6)
+model = DynamicEdgeConv(in_channels=41, out_channels=2, k=6)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)
 # criterion = torch.nn.MSELoss(reduction="sum")
 criterion = torch.nn.CrossEntropyLoss()
 

@@ -1,3 +1,4 @@
+import math
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -185,17 +186,88 @@ def load_tse_indices_data(database_file, isin=None):
     cursor, connection = setup_db(database_file=database_file)
     crawl_tse_indices_dataset(database_file)
 
-    query = """SELECT * FROM tse_indices"""
-    if isin is not None:
-        query += " where isin='%s'" % isin
-    query += " order by date_numeric asc"
+    query = """
+        select count(*) as c , isin
+        from tse_indices
+        where vol > 0
+        group by isin
+        having c > 2000
+        order by c desc
+    """
+    res = cursor.execute(query).fetchall()
 
-    results = cursor.execute(query).fetchall()
+    results = {}
+    for row in res:
+        isin = row["isin"]
+
+        query = "SELECT * FROM tse_indices"
+        if isin is not None:
+            query += " where isin='%s' and " % isin
+        query += "vol > 0 order by date_numeric desc limit 2000"
+
+        results[isin] = cursor.execute(query).fetchall()
 
     connection.commit()
     connection.close()
 
     return results
+
+
+def preprocess_zeros_in_tse_indices_data():
+    cursor, connection = setup_db(database_file=None)
+
+    query = """
+    select * 
+    from tse_indices 
+    where (open = 0 or high = 0 or low = 0 or close = 0) and  vol != 0
+    """
+
+    results = cursor.execute(query).fetchall()
+    for record in results:
+        if record["open"] == 0:
+            query = """
+                select *
+                from tse_indices
+                where isin = '%s' and date_numeric < %d
+                order by date_numeric desc
+                limit 1
+            """ % (record["isin"], record["date_numeric"])
+            last_candle = cursor.execute(query).fetchone()
+            if last_candle is None or len(last_candle) == 0:
+                record["open"] = record["close"]
+            else:
+                record["open"] = last_candle["close"]
+
+        if record["close"] == 0:
+            query = """
+                select *
+                from tse_indices
+                where isin = '%s' and date_numeric > %d
+                order by date_numeric asc
+                limit 1
+            """ % (record["isin"], record["date_numeric"])
+            last_candle = cursor.execute(query).fetchone()
+            if last_candle is None or len(last_candle) == 0:
+                record["close"] = record["open"]
+            else:
+                record["close"] = last_candle["open"]
+
+        if record["high"] == 0:
+            record["high"] = max(record["open"], record["close"])
+        if record["low"] == 0:
+            record["low"] = min(record["open"], record["close"])
+
+        query = """
+            update tse_indices 
+            set open=%d, high=%d, low=%d, close=%d
+            where isin='%s' and date_numeric=%d 
+        """ % (record["open"], record["high"], record["low"], record["close"], record["isin"], record["date_numeric"])
+        cursor.execute(query)
+        connection.commit()
+
+    cursor.close()
+    connection.close()
+
 
 
 def load_tse_indices_isin_list(database_file):
@@ -225,4 +297,5 @@ def load_tse_indices_data_by_isin(database_file, isin):
 
 
 if __name__ == "__main__":
-    crawl_tse_indices_dataset(database_file=None)
+    # crawl_tse_indices_dataset(database_file=None)
+    preprocess_zeros_in_tse_indices_data()
