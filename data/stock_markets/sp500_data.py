@@ -107,12 +107,26 @@ def load_sp500_stocks_data(database_file, ticker=None):
     cursor, connection = setup_db(database_file=database_file)
     crawl_sp500_stocks_dataset(database_file)
 
-    query = """SELECT * FROM sp500_stocks"""
-    if ticker is not None:
-        query += " where ticker='%s'" % ticker
-    query += " order by date_time asc"
+    query = """
+        select count(*) as c , ticker
+        from sp500_stocks
+        where vol > 0
+        group by ticker
+        having c > 3198
+        order by c desc;
+    """
+    res = cursor.execute(query).fetchall()
 
-    results = cursor.execute(query).fetchall()
+    results = {}
+    for row in res:
+        isin = row["ticker"]
+
+        query = "SELECT * FROM sp500_stocks"
+        if isin is not None:
+            query += " where ticker='%s' and " % isin
+        query += "vol > 0 order by date_time desc limit 3198"
+
+        results[isin] = cursor.execute(query).fetchall()
 
     connection.commit()
     connection.close()

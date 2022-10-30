@@ -54,7 +54,7 @@ class DynamicEdgeConv(EdgeConv):
             Softmax(dim=-1)
         )
 
-        self.node_features_fusion_layer = torch.nn.Conv1d(41, 41, 4, stride=1)
+        self.node_features_fusion_layer = torch.nn.Conv1d(in_channels, in_channels, 4, stride=1)
 
     def forward(self, X, batch=None):
         if self.edge_type == "KNN":
