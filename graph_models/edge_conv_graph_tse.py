@@ -2,7 +2,7 @@ from abc import ABC
 
 import torch
 from torch import Tensor
-from torch.nn import Sequential as Seq, Linear, ReLU, Flatten, Tanh, Softmax
+from torch.nn import Sequential as Seq, Linear, ReLU, Flatten, Tanh, Softmax, Conv2d
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.pool import knn_graph
 
@@ -47,14 +47,13 @@ class DynamicEdgeConv(EdgeConv):
         self.node_feature_fusion_type = node_feature_fusion_type
 
         self.output_generator_model = Seq(
-            Flatten(0, -1),
-            Linear(5 * in_channels, in_channels),
-            Linear(in_channels, in_channels),
-            Linear(in_channels, out_channels),
+            Linear(15, out_channels),
             Softmax(dim=-1)
         )
 
-        self.node_features_fusion_layer = torch.nn.Conv1d(in_channels, in_channels, 4, stride=1)
+        self.candle_features_fusion_layer = torch.nn.Conv1d(in_channels, in_channels, 4, stride=1)
+        self.trend_features_fusion_layer = torch.nn.Conv1d(in_channels, in_channels, 6, stride=1)
+        self.volatility_features_fusion_layer = torch.nn.Conv1d(in_channels, in_channels, 3, stride=1)
 
     def forward(self, X, batch=None):
         if self.edge_type == "KNN":
@@ -66,11 +65,23 @@ class DynamicEdgeConv(EdgeConv):
         else:
             raise ValueError("invalid edge type")
 
-        x = self.node_features_fusion_layer(x)
-        x = torch.squeeze(x)
+        ohlc_x = x[:, :, :4]
+        ohlc_x = self.candle_features_fusion_layer(ohlc_x)
+        ohlc_x = torch.squeeze(ohlc_x)
+        candle_graph_output = super().forward(ohlc_x, edge_index)
 
-        graph_output = super().forward(x, edge_index)
+        trend_x = x[:, :, 4:10]
+        trend_x = self.trend_features_fusion_layer(trend_x)
+        trend_x = torch.squeeze(trend_x)
+        trend_graph_output = super().forward(trend_x, edge_index)
 
-        output = self.output_generator_model(graph_output)
+        volatility_x = x[:, :, 10:]
+        volatility_x = self.volatility_features_fusion_layer(volatility_x)
+        volatility_x = torch.squeeze(volatility_x)
+        volatility_graph_output = super().forward(volatility_x, edge_index)
+
+        stock_f = torch.swapaxes(torch.concat([candle_graph_output, trend_graph_output, volatility_graph_output]), 0, 1)
+
+        output = self.output_generator_model(stock_f)
 
         return output

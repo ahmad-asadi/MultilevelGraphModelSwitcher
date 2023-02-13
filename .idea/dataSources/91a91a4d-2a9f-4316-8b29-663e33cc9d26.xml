@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="Data.db">
-  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.43">
+  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.45">
     <root id="1">
       <ServerVersion>3.39.2</ServerVersion>
     </root>
@@ -1323,46 +1323,46 @@
     <table id="485" parent="166" name="tse_indices"/>
     <column id="486" parent="482" name="id">
       <AutoIncrement>1</AutoIncrement>
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <Position>1</Position>
     </column>
     <column id="487" parent="482" name="ticker">
-      <DataType>VARCHAR|0s</DataType>
+      <DasType>VARCHAR|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
     <column id="488" parent="482" name="date_time">
-      <DataType>DATETIME|0s</DataType>
+      <DasType>DATETIME|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
     </column>
     <column id="489" parent="482" name="open">
-      <DataType>NUMERIC|0s</DataType>
+      <DasType>NUMERIC|0s</DasType>
       <NotNull>1</NotNull>
       <Position>4</Position>
     </column>
     <column id="490" parent="482" name="high">
-      <DataType>NUMERIC|0s</DataType>
+      <DasType>NUMERIC|0s</DasType>
       <NotNull>1</NotNull>
       <Position>5</Position>
     </column>
     <column id="491" parent="482" name="low">
-      <DataType>NUMERIC|0s</DataType>
+      <DasType>NUMERIC|0s</DasType>
       <NotNull>1</NotNull>
       <Position>6</Position>
     </column>
     <column id="492" parent="482" name="close">
-      <DataType>NUMERIC|0s</DataType>
+      <DasType>NUMERIC|0s</DasType>
       <NotNull>1</NotNull>
       <Position>7</Position>
     </column>
     <column id="493" parent="482" name="vol">
-      <DataType>NUMERIC|0s</DataType>
+      <DasType>NUMERIC|0s</DasType>
       <NotNull>1</NotNull>
       <Position>8</Position>
     </column>
     <column id="494" parent="482" name="adj_close">
-      <DataType>NUMERIC|0s</DataType>
+      <DasType>NUMERIC|0s</DasType>
       <NotNull>1</NotNull>
       <Position>9</Position>
     </column>
@@ -1371,23 +1371,23 @@
       <Primary>1</Primary>
     </key>
     <column id="496" parent="483" name="type">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>1</Position>
     </column>
     <column id="497" parent="483" name="name">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>2</Position>
     </column>
     <column id="498" parent="483" name="tbl_name">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>3</Position>
     </column>
     <column id="499" parent="483" name="rootpage">
-      <DataType>INT|0s</DataType>
+      <DasType>INT|0s</DasType>
       <Position>4</Position>
     </column>
     <column id="500" parent="483" name="sql">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>5</Position>
     </column>
     <column id="501" parent="484" name="name">
@@ -1398,86 +1398,86 @@
     </column>
     <column id="503" parent="485" name="id">
       <AutoIncrement>1</AutoIncrement>
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <Position>1</Position>
     </column>
     <column id="504" parent="485" name="isin">
-      <DataType>VARCHAR|0s</DataType>
+      <DasType>VARCHAR|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
     <column id="505" parent="485" name="ticker">
-      <DataType>VARCHAR|0s</DataType>
+      <DasType>VARCHAR|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
     </column>
     <column id="506" parent="485" name="date_numeric">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>4</Position>
     </column>
     <column id="507" parent="485" name="year">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>5</Position>
     </column>
     <column id="508" parent="485" name="month">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>6</Position>
     </column>
     <column id="509" parent="485" name="day">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>7</Position>
     </column>
     <column id="510" parent="485" name="open">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>8</Position>
     </column>
     <column id="511" parent="485" name="high">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>9</Position>
     </column>
     <column id="512" parent="485" name="low">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>10</Position>
     </column>
     <column id="513" parent="485" name="close">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>11</Position>
     </column>
     <column id="514" parent="485" name="vol">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>12</Position>
     </column>
     <column id="515" parent="485" name="cap">
-      <DataType>REAL|0s</DataType>
+      <DasType>REAL|0s</DasType>
       <NotNull>1</NotNull>
       <Position>13</Position>
     </column>
     <column id="516" parent="485" name="count">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>14</Position>
     </column>
     <column id="517" parent="485" name="eng_name">
-      <DataType>VARCHAR|0s</DataType>
+      <DasType>VARCHAR|0s</DasType>
       <NotNull>1</NotNull>
       <Position>15</Position>
     </column>
     <column id="518" parent="485" name="fa_name">
-      <DataType>VARCHAR|0s</DataType>
+      <DasType>VARCHAR|0s</DasType>
       <NotNull>1</NotNull>
       <Position>16</Position>
     </column>
     <column id="519" parent="485" name="last">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>17</Position>
     </column>

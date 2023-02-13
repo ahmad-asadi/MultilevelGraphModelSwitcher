@@ -47,13 +47,13 @@ class SP500DataLoader(BaseDataLoader):
             edge_index = [[edge_index_src, edge_index_dest]]
 
             label = [1, 0]
-            if raw_dataset[market_isin][idx + graph_depth + 1]["close"] > raw_dataset[market_isin][idx + graph_depth]["close"]:
+            if raw_dataset[market_isin][idx + graph_depth + 1]["close"] > raw_dataset[market_isin][idx + graph_depth][
+                "close"]:
                 label = [0, 1]
 
             graph_dataset.append(Data(x=torch.tensor(node_features, dtype=torch.float),
                                       edge_index=torch.tensor(edge_index, dtype=torch.long),
                                       y=torch.tensor(label)
                                       ))
-
 
         return graph_dataset
