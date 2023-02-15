@@ -24,7 +24,6 @@ class EdgeConv(MessagePassing, ABC):
             Softmax(dim=-1)
         )
 
-
     def forward(self, x, edge_index):
         # x has shape [N, in_channels]
         # edge_index has shape [2, E]
@@ -48,13 +47,14 @@ class EdgeConv(MessagePassing, ABC):
 
 # noinspection PyAbstractClass
 class DynamicEdgeConv(EdgeConv):
-    def __init__(self, in_channels, k=6, edge_type="KNN", node_feature_fusion_type="CAT_MLP"):
-        super().__init__(alpha=0.1, node_features_fusion_type=node_feature_fusion_type, nodes=in_channels, features=8)
+    def __init__(self, in_channels, features, k=6, edge_type="KNN", node_feature_fusion_type="CAT_MLP"):
+        super().__init__(alpha=0.1, node_features_fusion_type=node_feature_fusion_type,
+                         nodes=in_channels, features=features)
         self.k = k
         self.edge_type = edge_type
         self.node_feature_fusion_type = node_feature_fusion_type
 
-        self.node_feature_fusion_layer = torch.nn.Conv1d(in_channels, in_channels, 8, stride=1)
+        self.node_feature_fusion_layer = torch.nn.Conv1d(in_channels, in_channels, features, stride=1)
 
     def forward(self, X, batch=None):
         edge_index = knn_graph(X, self.k, batch, loop=False, flow=self.flow)

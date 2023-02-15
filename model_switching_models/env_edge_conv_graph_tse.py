@@ -14,8 +14,8 @@ train_data_loader = DataLoader(dataset=TseDataLoader(raw_dataset=data, batch_siz
                                shuffle=True)
 
 # model = DynamicEdgeConv(in_channels=4, out_channels=2, k=6)
-stock_fusion_model = DynamicEdgeConv(in_channels=41, out_channels=8, k=6)
-market_fusion_model = MarketFusionGraph(in_channels=41, k=6, edge_type="KNN")
+stock_fusion_model = DynamicEdgeConv(in_channels=41, out_channels=32)
+market_fusion_model = MarketFusionGraph(in_channels=41, k=6, edge_type="KNN", features=32)
 
 optimizer = torch.optim.Adam(stock_fusion_model.parameters(), lr=0.0001, weight_decay=1e-4)
 # criterion = torch.nn.MSELoss(reduction="sum")
