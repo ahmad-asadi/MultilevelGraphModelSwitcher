@@ -2,27 +2,19 @@ from abc import ABC
 
 import torch
 from torch import Tensor
-from torch.nn import Sequential as Seq, Linear, Softmax, Flatten
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.pool import knn_graph
 
 
 # noinspection PyMethodOverriding
 class EdgeConv(MessagePassing, ABC):
-    def __init__(self, alpha, node_features_fusion_type, nodes, features):
+    def __init__(self, alpha, node_features_fusion_type):
         super().__init__(aggr='mean')  # "Max" aggregation.
 
         self.node_features_fusion_type = node_features_fusion_type
 
         self.alpha = alpha
 
-        # self.mlp = Linear(2 * node_features_size, node_features_size)
-        self.output_generator_model = Seq(
-            Flatten(start_dim=0),
-            Linear(nodes * features, int(0.5 * nodes * features)),
-            Linear(int(0.5 * nodes * features), 2),
-            Softmax(dim=-1)
-        )
 
     def forward(self, x, edge_index):
         # x has shape [N, in_channels]
@@ -48,8 +40,7 @@ class EdgeConv(MessagePassing, ABC):
 # noinspection PyAbstractClass
 class DynamicEdgeConv(EdgeConv):
     def __init__(self, in_channels, features, k=6, edge_type="KNN", node_feature_fusion_type="CAT_MLP"):
-        super().__init__(alpha=0.1, node_features_fusion_type=node_feature_fusion_type,
-                         nodes=in_channels, features=features)
+        super().__init__(alpha=0.1, node_features_fusion_type=node_feature_fusion_type)
         self.k = k
         self.edge_type = edge_type
         self.node_feature_fusion_type = node_feature_fusion_type
@@ -63,7 +54,5 @@ class DynamicEdgeConv(EdgeConv):
         # X = torch.squeeze(X)
 
         output = super().forward(X, edge_index)
-
-        output = self.output_generator_model(output)
 
         return output

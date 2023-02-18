@@ -15,7 +15,7 @@ train_data_loader = DataLoader(dataset=TseDataLoader(raw_dataset=data, batch_siz
 # model = DynamicEdgeConv(in_channels=4, out_channels=2, k=6)
 model = FullFusionPricePredictor(in_channels=41, out_channels=32, k=6)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.00005, weight_decay=1e-4)
 # criterion = torch.nn.MSELoss(reduction="sum")
 criterion = torch.nn.CrossEntropyLoss()
 
