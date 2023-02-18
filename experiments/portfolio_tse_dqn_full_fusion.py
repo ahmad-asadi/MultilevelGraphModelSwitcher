@@ -1,12 +1,13 @@
 import torch
 from torch_geometric.loader import DataLoader
-
 from data.tse.tse_data_loader import TseDataLoader
-from model_switching_models.base_simulation_utils import run
+from drl.dqn import DQN
+from experiments.base_simulation_utils import run
 from graph_models.edge_conv_graph_tse import DynamicEdgeConv
 from graph_models.market_fusion_graph import DynamicEdgeConv as MarketFusionGraph
-
 from data.tse.tse_data import load_tse_indices_data
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 data = load_tse_indices_data(database_file=None)
 
@@ -17,7 +18,10 @@ train_data_loader = DataLoader(dataset=TseDataLoader(raw_dataset=data, batch_siz
 stock_fusion_model = DynamicEdgeConv(in_channels=41, out_channels=32)
 market_fusion_model = MarketFusionGraph(in_channels=41, k=6, edge_type="KNN", features=32)
 
-optimizer = torch.optim.Adam(stock_fusion_model.parameters(), lr=0.0001, weight_decay=1e-4)
+policy_net = DQN(1, 1).to(device)
+target_net = DQN(1, 1).to(device)
+
+optimizer = torch.optim.Adam(stock_fusion_model.parameters() + market_fusion_model.parameters() + policy_net.parameters(), lr=0.0001, weight_decay=1e-4)
 # criterion = torch.nn.MSELoss(reduction="sum")
 criterion = torch.nn.CrossEntropyLoss()
 
